@@ -1,6 +1,8 @@
 package FunctionalCoverage;
 
 import com.mysql.jdbc.Connection;
+import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
+
 import java.sql.*;
 import java.sql.DriverManager;
 
@@ -45,7 +47,12 @@ public final class MysqlConnect {
     public static int insertIntoSnapshotTable(String insertQuery,String date) throws SQLException {
         preparedStatement = db.conn.prepareStatement(insertQuery);
         preparedStatement.setString(1,date);
-        int result = preparedStatement.executeUpdate();
+        int result=0;
+        try {
+            result = preparedStatement.executeUpdate();
+        }catch (MySQLIntegrityConstraintViolationException ex){
+            System.out.println(ex.getMessage());
+        }
         return result;
     }
 

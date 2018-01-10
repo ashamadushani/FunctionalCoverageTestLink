@@ -13,7 +13,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.stream.IntStream;
 
 
@@ -95,10 +94,10 @@ public class TestResultFromTestLink {
         int[] returnArray={PASSED,FAILED,BLOCKED,NOT_RUN,total};
         return returnArray;
     }
-    public static List<TestPlanDetails> getTestPlanDetails(){
+    public static int saveFunctionalCoveragetoDB(){
+        MysqlConnect.getDbCon();
         TestLinkAPI api=getTestLinkAPI();
         ArrayList<String[]> testPlanList=new ArrayList<String[]>();
-        List<TestPlanDetails> testPlanDetailsList=new ArrayList<TestPlanDetails>();
 
         TestProject testProjects[]=api.getProjects();
         for (int i = 0; i <testProjects.length ; i++) {
@@ -109,52 +108,65 @@ public class TestResultFromTestLink {
             }
         }
         int lengthoftestPlanList=testPlanList.size();
-        System.out.println("There are "+lengthoftestPlanList+" test plans for today.");
-        IntStream.range(0,lengthoftestPlanList).parallel().forEach(i->{
-            int returnVal[]=TestResultFromTestLink.getTestResult(testPlanList.get(i)[1],testPlanList.get(i)[0]);
-            System.out.println(i+" Fetching data for test plan "+testPlanList.get(i)[1]+" of test project "+testPlanList.get(i)[0]);
-            testPlanDetailsList.add(new TestPlanDetails(testPlanList.get(i)[0],testPlanList.get(i)[1],returnVal[0],
-                    returnVal[1],returnVal[2],returnVal[3],returnVal[4]));
-        });
-
-
-        return testPlanDetailsList;
-    }
-    public static void main(String [] args){
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Date date = new Date();
         final String todayDate=dateFormat.format(date);
-        List<TestPlanDetails> testPlanDetailsList= getTestPlanDetails();
         String query1=Constants.INSERT_FUNCCOVERAGE_SNAPSHOT_DETAILS;
+        int ret=0;
         try {
-            int ret=MysqlConnect.insertIntoSnapshotTable(query1,todayDate);
+           ret = MysqlConnect.insertIntoSnapshotTable(query1,todayDate);
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        String query2=Constants.GET_FUNCCOVERAGE_SNAPSHOT_ID;
-        try {
-            final int snapshot_id=MysqlConnect.getLastSnapshotId(query2);
-            final String query3=Constants.INSERT_DAILY_FUNCCOVERAGE_DETAILS;
-            IntStream.range(0,testPlanDetailsList.size()).parallel().forEach(i->{
-                String project_name=testPlanDetailsList.get(i).getProjectName();
-                String test_plan_name=testPlanDetailsList.get(i).getTestPlanName();
-                int total_features=testPlanDetailsList.get(i).getTotalNumberofTestCases();
-                int passed_features=testPlanDetailsList.get(i).getNumberofPassedTestCases();
-                int failed_features=testPlanDetailsList.get(i).getNumberofFailedTestCases();
-                int blocked_features=testPlanDetailsList.get(i).getNumberofBlockedTestCases();
-                int not_run_features=testPlanDetailsList.get(i).getNumberofNotRunTestCases();
-                float functional_coverage= ((float)passed_features/(float)total_features)*100;
-                try {
-                    int ret=MysqlConnect.insertIntoDailyFunctionalCoverageTable(query3,snapshot_id,todayDate,project_name,test_plan_name,
-                            total_features,passed_features,failed_features,blocked_features,not_run_features,functional_coverage);
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            });
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        if(ret!=0){
+            String query2=Constants.GET_FUNCCOVERAGE_SNAPSHOT_ID;
+            try {
+                final int snapshot_id=MysqlConnect.getLastSnapshotId(query2);
+                final String query3=Constants.INSERT_DAILY_FUNCCOVERAGE_DETAILS;
+                System.out.println("There are "+lengthoftestPlanList+" test plans for "+todayDate);
+                IntStream.range(0,lengthoftestPlanList).parallel().forEach(i->{
+                    System.out.println(i+" Fetching data for test plan "+testPlanList.get(i)[1]+" of test project "+testPlanList.get(i)[0]);
+                    int returnVal[]=TestResultFromTestLink.getTestResult(testPlanList.get(i)[1],testPlanList.get(i)[0]);
 
+                    String project_name=testPlanList.get(i)[0];
+                    String test_plan_name=testPlanList.get(i)[1];
+                    int total_features=returnVal[4];
+                    int passed_features=returnVal[0];
+                    int failed_features=returnVal[1];
+                    int blocked_features=returnVal[2];
+                    int not_run_features=returnVal[3];
+                    if(total_features!=0){
+                        float functional_coverage= ((float)passed_features/(float)total_features)*100;
+                        try {
+                            int ret1=MysqlConnect.insertIntoDailyFunctionalCoverageTable(query3,snapshot_id,todayDate,project_name,test_plan_name,
+                                    total_features,passed_features,failed_features,blocked_features,not_run_features,functional_coverage);
+                            System.out.println("Data for test plan "+test_plan_name+" of test project "+project_name+" has been recorded.");
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                    }else{
+                        System.out.println("0 test cases in test plan" + test_plan_name+" of test project "+project_name+".");
+                    }
+
+                });
+
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        try {
+            MysqlConnect.db.conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return ret;
+    }
+    public static void main(String [] args){
+        int ret= saveFunctionalCoveragetoDB();
+        if(ret==0){
+            System.out.println("ERROR");
+        }
     }
 
     public static TestLinkAPI getTestLinkAPI(){
