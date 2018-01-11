@@ -145,7 +145,7 @@ public class TestResultFromTestLink {
                             e.printStackTrace();
                         }
                     }else{
-                        System.out.println("0 test cases in test plan" + test_plan_name+" of test project "+project_name+".");
+                        System.out.println("0 test cases in test plan " + test_plan_name+" of test project "+project_name+".");
                     }
 
                 });
