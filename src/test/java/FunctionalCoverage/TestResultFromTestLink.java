@@ -18,6 +18,13 @@ import java.util.stream.IntStream;
 
 public class TestResultFromTestLink {
 
+    public static void main(String [] args){
+        int ret= saveFunctionalCoveragetoDB();
+        if(ret==0){
+            System.out.println("ERROR");
+        }
+    }
+
     public static int[] getTestResult(String testPlanName, String testProjectName){
         TestLinkAPI api=getTestLinkAPI();
         TestPlan testPlan=null;
@@ -94,6 +101,7 @@ public class TestResultFromTestLink {
         int[] returnArray={PASSED,FAILED,BLOCKED,NOT_RUN,total};
         return returnArray;
     }
+
     public static int saveFunctionalCoveragetoDB(){
         MysqlConnect.getDbCon();
         TestLinkAPI api=getTestLinkAPI();
@@ -162,12 +170,6 @@ public class TestResultFromTestLink {
         }
         return ret;
     }
-    public static void main(String [] args){
-        int ret= saveFunctionalCoveragetoDB();
-        if(ret==0){
-            System.out.println("ERROR");
-        }
-    }
 
     public static TestLinkAPI getTestLinkAPI(){
         String url = Constants.getTestLinkUrl();
@@ -191,4 +193,5 @@ public class TestResultFromTestLink {
         }
         return api;
     }
+    
 }
