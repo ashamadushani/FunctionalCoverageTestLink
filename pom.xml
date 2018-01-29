@@ -6,6 +6,22 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>appassembler-maven-plugin</artifactId>
+                <version>1.10</version>
+                <configuration>
+                    <programs>
+                        <program>
+                            <mainClass>org.service.Application_Deploy_MavenAether</mainClass>
+                            <id>aether-microservice-deploy</id>
+                        </program>
+                    </programs>
+                    <configurationDirectory>config</configurationDirectory>
+                    <configurationSourceDirectory>src/main/resources</configurationSourceDirectory>
+                    <copyConfigurationDirectory>true</copyConfigurationDirectory>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
@@ -16,6 +32,11 @@
         </plugins>
     </build>
     <dependencies>
+        <dependency>
+            <groupId>com.esotericsoftware.yamlbeans</groupId>
+            <artifactId>yamlbeans</artifactId>
+            <version>1.08</version>
+        </dependency>
         <dependency>
             <groupId>br.eti.kinoshita</groupId>
             <artifactId>testlink-java-api</artifactId>
@@ -37,5 +58,6 @@
             <artifactId>mysql-connector-java</artifactId>
             <version>5.1.6</version>
         </dependency>
+
     </dependencies>
 </project>

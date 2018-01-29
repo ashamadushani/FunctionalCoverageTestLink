@@ -1,8 +1,9 @@
-package FunctionalCoverage;
+package org.wso2.internalapps.pqd.functionalcoverage;
 
 import com.mysql.jdbc.Connection;
 import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
 
+import java.io.IOException;
 import java.sql.*;
 import java.sql.DriverManager;
 
@@ -12,17 +13,22 @@ public final class MysqlConnect {
     private static Statement statement;
     public static MysqlConnect db;
     private MysqlConnect() {
-        String url= Constants.getDbUrl();
-        String dbName = Constants.getDbName();
-        String driver = "com.mysql.jdbc.Driver";
-        String userName = Constants.getDbUserName();
-        String password = Constants.getDbPassword();
+        ReaderYaml yamlreader=new ReaderYaml();
         try {
-            Class.forName(driver).newInstance();
-            this.conn = (Connection)DriverManager.getConnection(url+dbName,userName,password);
-        }
-        catch (Exception sqle) {
-            sqle.printStackTrace();
+            Config config = yamlreader.readYaml();
+            String url = config.getDbUrl();
+            String dbName = config.getDbName();
+            String driver = "com.mysql.jdbc.Driver";
+            String userName = config.getDbUserName();
+            String password = config.getDbPassword();
+            try {
+                Class.forName(driver).newInstance();
+                this.conn = (Connection) DriverManager.getConnection(url + dbName, userName, password);
+            } catch (Exception sqle) {
+                sqle.printStackTrace();
+            }
+        }catch(IOException ioece){
+            ioece.printStackTrace();
         }
     }
 

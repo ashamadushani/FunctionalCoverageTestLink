@@ -1,4 +1,4 @@
-package FunctionalCoverage;
+package org.wso2.internalapps.pqd.functionalcoverage;
 
 import br.eti.kinoshita.testlinkjavaapi.TestLinkAPI;
 import br.eti.kinoshita.testlinkjavaapi.constants.TestCaseDetails;
@@ -6,6 +6,7 @@ import br.eti.kinoshita.testlinkjavaapi.model.*;
 import br.eti.kinoshita.testlinkjavaapi.util.TestLinkAPIException;
 import junit.framework.Assert;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.SQLException;
@@ -131,6 +132,7 @@ public class TestResultFromTestLink {
             try {
                 final int snapshot_id=MysqlConnect.getLastSnapshotId(query2);
                 final String query3=Constants.INSERT_DAILY_FUNCCOVERAGE_DETAILS;
+                System.out.println("-------------------------------------------------------------");
                 System.out.println("There are "+lengthoftestPlanList+" test plans for "+todayDate);
                 IntStream.range(0,lengthoftestPlanList).parallel().forEach(i->{
                     System.out.println(i+" Fetching data for test plan "+testPlanList.get(i)[1]+" of test project "+testPlanList.get(i)[0]);
@@ -157,7 +159,8 @@ public class TestResultFromTestLink {
                     }
 
                 });
-
+                System.out.println("Fetching functional coverage data was finished.Data stored Successfully.");
+                System.out.println("-------------------------------------------------------------");
 
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -172,8 +175,15 @@ public class TestResultFromTestLink {
     }
 
     public static TestLinkAPI getTestLinkAPI(){
-        String url = Constants.getTestLinkUrl();
-        String devKey = Constants.getDevKey();
+        ReaderYaml yamlreader=new ReaderYaml();
+        Config config= null;
+        try {
+            config = yamlreader.readYaml();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String url = config.getTestLinkUrl();
+        String devKey = config.getDevKey();
         TestLinkAPI api = null;
 
         URL testlinkURL = null;

@@ -1,4 +1,4 @@
-package FunctionalCoverage;
+package org.wso2.internalapps.pqd.functionalcoverage;
 
 public class TestPlanDetails {
     private String projectName;
